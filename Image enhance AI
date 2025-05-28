@@ -1,0 +1,33 @@
+# STEP 1: Install required packages
+!pip install -q gradio opencv-python opencv-contrib-python
+
+# STEP 2: Import libraries
+import gradio as gr
+import cv2
+import numpy as np
+
+# STEP 3: Download the pre-trained ESRGAN model (only once)
+import os
+if not os.path.exists("ESPCN_x4.pb"):
+    !wget https://github.com/Saafke/ESPCN-super-resolution/raw/master/models/ESPCN_x4.pb
+
+# STEP 4: Load the model
+sr = cv2.dnn_superres.DnnSuperResImpl_create()
+sr.readModel("ESPCN_x4.pb")
+sr.setModel("espcn", 4)  # Using ESPCN for x4 upscaling
+
+# STEP 5: Enhance function
+def enhance_image(input_img):
+    input_img = cv2.cvtColor(input_img, cv2.COLOR_RGB2BGR)
+    result = sr.upsample(input_img)
+    result = cv2.cvtColor(result, cv2.COLOR_BGR2RGB)
+    return result
+
+# STEP 6: Gradio UI
+gr.Interface(
+    fn=enhance_image,
+    inputs=gr.Image(type="numpy", label="Upload Image"),
+    outputs=gr.Image(type="numpy", label="Enhanced Image"),
+    title="Image Quality Enhancer AI",
+    description="Uses a pre-trained ESPCN model to upscale and enhance the input image by 4x."
+).launch(
