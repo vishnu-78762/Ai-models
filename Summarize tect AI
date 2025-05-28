@@ -1,0 +1,25 @@
+# STEP 1: Install required packages
+!pip install -q gradio transformers
+
+# STEP 2: Import libraries
+import gradio as gr
+from transformers import pipeline
+
+# STEP 3: Load summarization pipeline
+summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+
+# STEP 4: Summarization function
+def summarize_text(text):
+    if len(text.strip()) == 0:
+        return "Please enter some text."
+    summary = summarizer(text, max_length=150, min_length=30, do_sample=False)
+    return summary[0]['summary_text']
+
+# STEP 5: Gradio interface
+gr.Interface(
+    fn=summarize_text,
+    inputs=gr.Textbox(lines=10, placeholder="Paste your text here...", label="Input Text"),
+    outputs=gr.Textbox(label="Summary"),
+    title="Text Summarizer AI",
+    description="Summarizes long text using a pre-trained BART model from Hugging Face."
+).launch(
