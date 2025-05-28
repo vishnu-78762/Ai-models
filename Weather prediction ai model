@@ -1,0 +1,43 @@
+# STEP 1: Install required packages
+!pip install -q gradio scikit-learn pandas matplotlib seaborn
+
+# STEP 2: Import libraries
+import gradio as gr
+import pandas as pd
+import numpy as np
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# STEP 3: Sample customer data (like the Mall Customer dataset)
+data = {
+    "Age": [19, 21, 20, 23, 31, 22, 35, 23, 64, 30],
+    "Annual Income": [15, 15, 16, 16, 17, 17, 18, 18, 19, 19],
+    "Spending Score": [39, 81, 6, 77, 40, 76, 6, 94, 3, 72]
+}
+
+df = pd.DataFrame(data)
+
+# STEP 4: Train KMeans clustering model
+X = df[["Age", "Annual Income", "Spending Score"]]
+kmeans = KMeans(n_clusters=3, random_state=42)
+kmeans.fit(X)
+
+# STEP 5: Prediction function
+def segment_customer(age, income, score):
+    data_point = np.array([[age, income, score]])
+    cluster = kmeans.predict(data_point)[0]
+    return f"Customer belongs to Segment: {cluster}"
+
+# STEP 6: Gradio UI
+gr.Interface(
+    fn=segment_customer,
+    inputs=[
+        gr.Slider(15, 70, value=30, label="Age"),
+        gr.Slider(10, 150, value=50, label="Annual Income (k$)"),
+        gr.Slider(1, 100, value=50, label="Spending Score (1-100)")
+    ],
+    outputs=gr.Textbox(label="Segment"),
+    title="Customer Segmentation AI",
+    description="Uses KMeans clustering to assign customers to segments based on age, income, and spending score."
+).launch(
