@@ -1,0 +1,46 @@
+# STEP 1: Install required packages
+!pip install -q gradio scikit-learn pandas
+
+# STEP 2: Import libraries
+import gradio as gr
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestClassifier
+
+# STEP 3: Sample weather dataset
+data = {
+    "Temperature": [30, 25, 28, 35, 20, 23, 31, 24, 33, 22],
+    "Humidity": [85, 90, 78, 60, 95, 88, 70, 92, 65, 91],
+    "WindSpeed": [12, 7, 15, 10, 5, 9, 11, 6, 13, 8],
+    "Rain": [1, 1, 0, 0, 1, 1, 0, 1, 0, 1]  # 1 = Rain, 0 = No Rain
+}
+
+df = pd.DataFrame(data)
+
+# STEP 4: Train the model
+X = df[["Temperature", "Humidity", "WindSpeed"]]
+y = df["Rain"]
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+model = RandomForestClassifier()
+model.fit(X_train, y_train)
+
+# STEP 5: Prediction function
+def predict_weather(temp, humidity, windspeed):
+    features = [[temp, humidity, windspeed]]
+    prediction = model.predict(features)[0]
+    return "Rain" if prediction == 1 else "No Rain"
+
+# STEP 6: Gradio UI
+gr.Interface(
+    fn=predict_weather,
+    inputs=[
+        gr.Slider(10, 50, value=25, label="Temperature (°C)"),
+        gr.Slider(0, 100, value=80, label="Humidity (%)"),
+        gr.Slider(0, 30, value=10, label="Wind Speed (km/h)")
+    ],
+    outputs=gr.Textbox(label="Prediction"),
+    title="Weather Prediction AI",
+    description="Predicts whether it will rain based on temperature, humidity, and wind speed."
+).launch(
